@@ -41,9 +41,7 @@
                     <li class="nav-item">
                         <a class="nav-link" href="contact.html">Contact</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="developer.html">Developer</a>
-                    </li>
+                
                     <li class="nav-item">
                         <a class="nav-link" href="blog.html">Blog</a>
                     </li>
@@ -67,10 +65,10 @@
             <button type="submit" class="btn btn-primary mt-3">Submit</button> <!-- Added submit button -->
         </form>
     </div>
-
+<!-------------------------------------------------------------------------------------------------------------------------------->
 
     
-    <!--script for sending the input -->
+    <!--script for sending the input                                              DONT TOUCH THIS  -->
 <script>
 // Select the form element
 const form = document.getElementById('symptomForm');
@@ -108,10 +106,7 @@ fetch('/submit-symptoms', {
  
 </script>
 
-
-
-
-  
+ <!----------------------------------------------------------------------------------------------------------------------------------------> 
 
     <!-- Results -->
     <h1 class="text-center my-4 mt-4">Our AI System Results</h1>
@@ -119,42 +114,112 @@ fetch('/submit-symptoms', {
         <div class="result-container">
             <!-- Buttons to toggle display -->
             <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#diseaseModal" style="padding:4px; margin: 5px 40px 5px 90px; font-size:20px;font-weight:bold; width:140px; border-radius:5px; background:#F39334;color:black;">Disease</button>
-            <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#descriptionModal" style="padding:4px; margin: 5px 40px 5px 0; font-size:20px;font-weight:bold; width:140px; border-radius:5px; background:#268AF3 ;color:black;">Description</button>
+           
             <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#precautionModal" style="padding:4px; margin: 5px 40px 5px 0; font-size:20px;font-weight:bold; width:140px; border-radius:5px; background:#F371F9 ;color:black;">Precaution</button>
-            <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#workoutsModal" style="padding:4px; margin: 5px 40px 5px 0; font-size:20px;font-weight:bold; width:140px; border-radius:5px; background:#99F741 ;color:black;">Workouts</button>
+            <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#workoutsModal" style="padding:4px; margin: 5px 40px 5px 0; font-size:20px;font-weight:bold; width: 190px; border-radius:5px; background:#99F741 ;color:black;">Recommendations</button>
             <button class="toggle-button" data-bs-toggle="modal" data-bs-target="#dietsModal" style="padding:4px; margin: 5px 40px 5px 0; font-size:20px;font-weight:bold; width:140px; border-radius:5px; background:#E5E23D;color:black;">Diets</button>
         </div>
     </div>
+<!---------------------------------------------------------------------------------------------------------------------------------------------------------------------->
+   
 
-    <!-- Disease Modal -->
-    <div class="modal fade" id="diseaseModal" tabindex="-1" aria-labelledby="diseaseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: #020606; color:white;">
-                    <h5 class="modal-title" id="diseaseModalLabel">Predicted Disease</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" style="background-color: #modal-body-color;">
-                    <p>{{ predicted_disease }}</p> <!-- Placeholder for predicted disease -->
-                </div>
+
+<!-- Disease Modal -->
+<div class="modal fade" id="diseaseModal" tabindex="-1" aria-labelledby="diseaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #020606; color:white;">
+                <h5 class="modal-title" id="diseaseModalLabel">Predicted Diseases</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background-color: #modal-body-color;">
+                <p>Top 3 matched diseases:</p>
+                <ul id="disease-list">
+                   <!-- Dynamically updated disease list will appear here -->
+                </ul>
+                <p>*click each disease name to see its description*</p>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Description Modal -->
-    <div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="background-color: #020606; color:white;">
-                    <h5 class="modal-title" id="descriptionModalLabel">Description</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>{{ dis_des }}</p> <!-- Placeholder for disease description -->
-                </div>
+<!-- Description Modal -->
+<div class="modal fade" id="descriptionModal" tabindex="-1" aria-labelledby="descriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #020606; color:white;">
+                <h5 class="modal-title" id="descriptionModalLabel">Description</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>description:</p>
+                <p id="description-text"></p> <!-- Placeholder for disease description -->
             </div>
         </div>
     </div>
+</div>
+
+<!-- Script for dynamic handling of modals -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('symptomForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const symptomsInput = document.getElementById('symptoms').value;
+            console.log('Symptoms input:', symptomsInput);
+
+            fetch('/submit-symptoms', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ symptoms: symptomsInput }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+
+                // Get the disease list element
+                const diseaseList = document.getElementById('disease-list');
+                if (diseaseList) {
+                    diseaseList.innerHTML = '';
+
+                    // Add new diseases to the list with clickable descriptions
+                    data.diseaseDescriptions.forEach(diseaseObj => {
+                        const li = document.createElement('li');
+                        li.textContent = diseaseObj.disease;
+                        li.style.cursor = 'pointer'; // Make it clickable
+
+                        // Add click event to show description in the description modal
+                        li.addEventListener('click', function() {
+                            const descriptionText = document.getElementById('description-text');
+                            descriptionText.textContent = diseaseObj.description;
+
+                            // Show the description modal
+                            var descriptionModal = new bootstrap.Modal(document.getElementById('descriptionModal'));
+                            descriptionModal.show();
+                        });
+
+                        diseaseList.appendChild(li);
+                    });
+
+                    // Show the disease modal
+                    var diseaseModal = new bootstrap.Modal(document.getElementById('diseaseModal'));
+                    diseaseModal.show();
+                } else {
+                    console.error('disease-list element not found in the DOM');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    });
+</script>
+
+
+
+
 
     <!-- Precaution Modal -->
     <div class="modal fade" id="precautionModal" tabindex="-1" aria-labelledby="precautionModalLabel" aria-hidden="true">
