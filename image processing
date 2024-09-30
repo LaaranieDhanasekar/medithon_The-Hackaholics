@@ -46,3 +46,631 @@ plt.ylabel('Accuracy')
 plt.xlabel('Epoch')
 plt.legend(['Train', 'Validation'], loc='upper left')
 plt.show()
+
+
+
+train manualnet.py
+
+
+# train_manualnet.py
+import warnings
+warnings.filterwarnings('ignore')
+
+import tensorflow as tf
+from tensorflow.keras.models import Sequential # type: ignore
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense # type: ignore
+from tensorflow.keras.preprocessing.image import ImageDataGenerator # type: ignore
+import matplotlib.pyplot as plt 
+
+# Data preprocessing
+train_datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
+training_set = train_datagen.flow_from_directory('DATASET/TRAIN', target_size=(224, 224), batch_size=32, class_mode='categorical')
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+test_set = test_datagen.flow_from_directory('DATASET/TEST', target_size=(224, 224), batch_size=32, class_mode='categorical')
+
+# Building ManualNet
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(3, activation='softmax'))  # 3 classes
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(training_set, epochs=25, validation_data=test_set)
+
+# Save the model
+model.save('models/ManualNet.keras')
+
+# Plotting the accuracy
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('ManualNet Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+
+
+train xceptionnet.py
+
+
+# train_xceptionnet.py
+import warnings
+warnings.filterwarnings('ignore')
+
+import tensorflow as tf
+from tensorflow.keras.applications import Xception # type: ignore
+from tensorflow.keras.preprocessing.image import ImageDataGenerator # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+
+# Data preprocessing
+train_datagen = ImageDataGenerator(rescale=1./255, shear_range=0.2, zoom_range=0.2, horizontal_flip=True)
+training_set = train_datagen.flow_from_directory('DATASET/TRAIN', target_size=(224, 224), batch_size=32, class_mode='categorical')
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+test_set = test_datagen.flow_from_directory('DATASET/TEST', target_size=(224, 224), batch_size=32, class_mode='categorical')
+
+# Building XceptionNet
+model = Xception(weights=None, input_shape=(224, 224, 3), classes=3)  # 3 classes
+
+# Compile the model
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Train the model
+history = model.fit(training_set, epochs=25, validation_data=test_set)
+
+# Save the model
+# Save the model in Keras format
+model.save('models/XceptionNet.keras')
+
+
+# Plotting the accuracy
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.title('XceptionNet Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+
+
+result.html
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Result</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Base styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(120deg, #f6d365, #fda085);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transform: scale(0);
+            animation: zoomIn 1s forwards, bounce 1s 1s ease-in-out forwards;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #333;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeIn 2s forwards 0.5s;
+        }
+
+        p {
+            font-size: 1.8rem;
+            color: #4CAF50;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeIn 2s forwards 0.8s;
+        }
+
+        a {
+            font-size: 1.5rem;
+            color: #fff;
+            text-decoration: none;
+            background: linear-gradient(45deg, #ff6f61, #d74b4b);
+            padding: 15px 30px;
+            border-radius: 50px;
+            transition: background-color 0.5s ease, transform 0.3s ease;
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            animation: fadeIn 2s forwards 1.1s;
+        }
+
+        a:hover {
+            background: linear-gradient(45deg, #ff4f3d, #c43d3d);
+            transform: translateY(-5px);
+        }
+
+        /* Floating shapes background animation */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .background span {
+            position: absolute;
+            display: block;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out;
+            mix-blend-mode: overlay;
+        }
+
+        .background span:nth-child(1) {
+            top: -150px;
+            left: -150px;
+            animation-duration: 15s;
+            animation-delay: 2s;
+        }
+
+        .background span:nth-child(2) {
+            top: -100px;
+            right: -150px;
+            animation-duration: 20s;
+            animation-delay: 4s;
+        }
+
+        .background span:nth-child(3) {
+            bottom: -150px;
+            left: -150px;
+            animation-duration: 12s;
+            animation-delay: 3s;
+        }
+
+        .background span:nth-child(4) {
+            bottom: -150px;
+            right: -150px;
+            animation-duration: 18s;
+            animation-delay: 6s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-50px) scale(1.1);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Animations for the content */
+        @keyframes zoomIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="container">
+        <h1>Diagnosis Result</h1>
+        <p>The diagnosis is: {{ result }}</p>
+        <a href="/">Upload another image</a>
+    </div>
+</body>
+</html>
+
+
+
+upload.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image for Diagnosis</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        /* Base Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideIn 1s ease-out;
+            width: 400px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+            animation: fadeInSlideUp 1.2s ease-in-out;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+
+        input[type="file"] {
+            padding: 12px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            background-color: #fff;
+            width: 100%;
+            cursor: pointer;
+            animation: fadeIn 1.5s forwards 0.5s;
+        }
+
+        button {
+            font-size: 1.2rem;
+            color: #fff;
+            background-color: #36d1dc;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.15);
+            animation: fadeIn 1.5s forwards 1s;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #28a1c5;
+            transform: translateY(-3px);
+            box-shadow: 0px 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .file-name {
+            font-size: 1rem;
+            color: #333;
+            margin-top: -10px;
+            font-style: italic;
+            opacity: 0;
+            animation: fadeIn 2s forwards 0.7s;
+        }
+
+        /* Floating shapes background animation */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .background span {
+            position: absolute;
+            display: block;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out;
+            mix-blend-mode: overlay;
+        }
+
+        .background span:nth-child(1) {
+            top: -150px;
+            left: -150px;
+            animation-duration: 15s;
+            animation-delay: 2s;
+        }
+
+        .background span:nth-child(2) {
+            top: -100px;
+            right: -150px;
+            animation-duration: 20s;
+            animation-delay: 4s;
+        }
+
+        .background span:nth-child(3) {
+            bottom: -150px;
+            left: -150px;
+            animation-duration: 12s;
+            animation-delay: 3s;
+        }
+
+        .background span:nth-child(4) {
+            bottom: -150px;
+            right: -150px;
+            animation-duration: 18s;
+            animation-delay: 6s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-50px) scale(1.1);
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="container">
+        <h1>Upload Medical Image for Diagnosis</h1>
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <input type="file" name="image" accept="image/*" required id="fileInput">
+            <p class="file-name" id="fileName">No file chosen</p>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        // JavaScript to update file name
+        const fileInput = document.getElementById('fileInput');
+        const fileNameDisplay = document.getElementById('fileName');
+
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+            if (file) {
+                fileNameDisplay.textContent = `Selected file: ${file.name}`;
+            } else {
+                fileNameDisplay.textContent = 'No file chosen';
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+app.py
+
+
+from flask import Flask, render_template, request
+from tensorflow.keras.models import load_model  # type: ignore
+from tensorflow.keras.preprocessing import image   # type: ignore
+import numpy as np  # type: ignore
+import os
+
+app = Flask(__name__)
+model = load_model('models/ManualNet.keras')  # Ensure the model path is correct
+
+# Predefined class labels for the dataset
+cancer_types = {0: "Lung Adenocarcinoma", 1: "Colon Adenocarcinoma", 2: "Oral Squamous Cell Carcinoma"}
+
+# Preprocessing function to ensure consistency with training
+def preprocess_image(img_path):
+    try:
+        img = image.load_img(img_path, target_size=(224, 224))  # Resize image
+        img_array = image.img_to_array(img)
+        img_array = img_array / 255.0  # Scale pixel values to [0, 1] range
+        img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
+        return img_array
+    except Exception as e:
+        print(f"Error in preprocessing image: {e}")
+        return None
+
+@app.route('/')
+def upload():
+    return render_template('upload.html')
+
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    # Ensure 'temp' directory exists to store the uploaded image
+    if not os.path.exists('temp'):
+        os.makedirs('temp')
+
+    img_file = request.files['image']
+    img_path = f'temp/{img_file.filename}'  # Save to a temporary folder
+    img_file.save(img_path)
+
+    # Preprocess the image
+    img_array = preprocess_image(img_path)
+    
+    if img_array is None:
+        return render_template('error.html', message="Error during image preprocessing.")
+
+    try:
+        # Predict the result and get probabilities
+        prediction = model.predict(img_array)
+
+        # Debug: Print prediction probabilities
+        print("Prediction probabilities:", prediction)
+
+        # Get the class with the highest probability
+        result = np.argmax(prediction)
+
+        # Map the result to a cancer type
+        diagnosis = cancer_types.get(result, "Unknown")
+
+        # Show prediction probabilities in the response for debugging
+        probability_display = {cancer_types.get(i, "Unknown"): round(float(prob), 4)
+                               for i, prob in enumerate(prediction[0])}
+
+        return render_template('result.html', result=diagnosis, probabilities=probability_display)
+
+    except Exception as e:
+        print(f"Error during prediction: {e}")
+        return render_template('error.html', message="An error occurred during prediction.")
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+train_model.py
+
+# train_model.py
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.optimizers import Adam
+from sklearn.utils.class_weight import compute_class_weight
+import numpy as np
+import os
+
+# Load dataset
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest')
+
+train_generator = train_datagen.flow_from_directory(
+    'dataset/train',  # Make sure this is the correct directory
+    target_size=(224, 224),
+    batch_size=32,
+    class_mode='categorical')
+
+# Model architecture (simple example)
+model = Sequential([
+    Conv2D(32, (3, 3), activation='relu', input_shape=(224, 224, 3)),
+    MaxPooling2D(2, 2),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D(2, 2),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(0.5),
+    Dense(3, activation='softmax')  # 3 classes: Lung, Colon, Oral cancer
+])
+
+# Compile the model
+model.compile(optimizer=Adam(), loss='categorical_crossentropy', metrics=['accuracy'])
+
+# Compute class weights (to handle class imbalance)
+class_weights = compute_class_weight(
+    class_weight='balanced',
+    classes=np.unique(train_generator.classes),
+    y=train_generator.classes)
+
+# Train the model with class weights
+model.fit(train_generator, epochs=20, class_weight=class_weights)
+
+# Save the trained model
+model.save('models/ManualNet.keras')
+
